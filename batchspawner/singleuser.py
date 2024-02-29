@@ -32,7 +32,8 @@ def main(argv=None):
         **kwargs,
     )
 
-    cmd_path = which(sys.argv[1])
+    #cmd_path = which(sys.argv[1])
+    cmd_path = os.path.dirname(sys.argv[1])
     sys.argv = sys.argv[1:] + [f"--port={port}"]
     run_path(cmd_path, run_name="__main__")
 

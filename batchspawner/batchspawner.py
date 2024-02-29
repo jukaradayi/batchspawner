@@ -172,7 +172,7 @@ class BatchSpawnerBase(Spawner):
     ).tag(config=True)
 
     batchspawner_singleuser_cmd = Unicode(
-        "batchspawner-singleuser",
+        "/home/jkaradayi/.conda/envs/jupyterhub/bin/batchspawner-singleuser",
         help="A wrapper which is capable of special batchspawner setup: currently sets the port on "
         "the remote host.  Not needed to be set under normal circumstances, unless path needs "
         "specification.",
@@ -205,7 +205,8 @@ class BatchSpawnerBase(Spawner):
 
     def cmd_formatted_for_batch(self):
         """The command which is substituted inside of the batch script"""
-        return " ".join([self.batchspawner_singleuser_cmd] + self.cmd + self.get_args())
+        return " ".join([self.batchspawner_singleuser_cmd] + [os.path.join('/home/jkaradayi/.conda/envs/jupyterhub/bin/jupyterhub-singleuser',self.cmd[0])] + self.get_args())
+        #return " ".join([self.batchspawner_singleuser_cmd] + self.cmd + self.get_args())
 
     async def run_command(self, cmd, input=None, env=None):
         proc = await asyncio.create_subprocess_shell(
@@ -680,10 +681,11 @@ class SlurmSpawner(UserEnvMixin, BatchSpawnerRegexStates):
 {% endif %}{% if options    %}#SBATCH {{options}}{% endif %}
 
 set -euo pipefail
-
+source /home/jkaradayi/.bashrc
 trap 'echo SIGTERM received' TERM
 {{prologue}}
-which jupyterhub-singleuser
+#which /home/jkaradayi/.conda/envs/jupyterhub/bin/jupyterhub-singleuser
+echo /home/jkaradayi/.conda/envs/jupyterhub/bin/
 {% if srun %}{{srun}} {% endif %}{{cmd}}
 echo "jupyterhub-singleuser ended gracefully"
 {{epilogue}}
@@ -702,7 +704,7 @@ echo "jupyterhub-singleuser ended gracefully"
     ).tag(config=True)
 
     req_srun = Unicode(
-        "srun",
+        "/usr/local/slurm/bin/srun",
         help="Set req_srun='' to disable running in job step, and note that "
         "this affects environment handling.  This is effectively a "
         "prefix for the singleuser command.",
@@ -719,10 +721,10 @@ echo "jupyterhub-singleuser ended gracefully"
     ).tag(config=True)
 
     # outputs line like "Submitted batch job 209"
-    batch_submit_cmd = Unicode("sbatch --parsable").tag(config=True)
+    batch_submit_cmd = Unicode("/usr/local/slurm/bin/sbatch --parsable").tag(config=True)
     # outputs status and exec node like "RUNNING hostname"
-    batch_query_cmd = Unicode("squeue -h -j {job_id} -o '%T %B'").tag(config=True)
-    batch_cancel_cmd = Unicode("scancel {job_id}").tag(config=True)
+    batch_query_cmd = Unicode("/usr/local/slurm/bin/squeue -h -j {job_id} -o '%T %B'").tag(config=True)
+    batch_cancel_cmd = Unicode("/usr/local/slurm/bin/scancel {job_id}").tag(config=True)
     # use long-form states: PENDING,  CONFIGURING = pending
     #  RUNNING,  COMPLETING = running
     state_pending_re = Unicode(r"^(?:PENDING|CONFIGURING)").tag(config=True)
